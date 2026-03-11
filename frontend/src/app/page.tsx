@@ -603,6 +603,36 @@ const Dashboard: React.FC = () => {
   />
 </section>
 
+<section className="w-full flex justify-center py-10 sm:py-14 bg-bg">
+  <div className="w-full max-w-4xl px-4 sm:px-6 lg:px-8">
+
+    {/* Title */}
+    <div className="flex flex-col items-center justify-center text-center mb-10">
+  <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-fg leading-tight">
+    Geo Fenced <span className="text-primary-600">System</span>
+  </h2>
+
+  <p className="mt-4 text-base sm:text-lg text-fg-secondary max-w-2xl leading-relaxed">
+    Location-based complaint tagging and resolution tracking for hyper-local governance.
+  </p>
+</div>
+
+    {/* Reduced Video Container */}
+    <div className="rounded-2xl overflow-hidden shadow-xl border border-border bg-black max-w-3xl mx-auto">
+      <div className="aspect-video w-full">
+        <video
+          className="w-full h-full object-cover"
+          controls
+          poster="/video-thumbnail.jpg"
+        >
+          <source src="/video-thumbnail.mp4" type="video/mp4" />
+        </video>
+      </div>
+    </div>
+
+  </div>
+</section>
+
       {/* Features Grid */}
       <NetworkCapabilities />
 
