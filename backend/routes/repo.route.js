@@ -6,6 +6,8 @@ import fs from "fs/promises";
 
 const router = express.Router();
 
+/* ---------------- MULTER CONFIG ---------------- */
+
 const storage = multer.diskStorage({
   destination: "./uploads",
   filename: (req, file, cb) => {
@@ -15,63 +17,83 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 2 * 1024 * 1024 },
+  limits: { fileSize: 5 * 1024 * 1024 }, // increased for images
   fileFilter: (req, file, cb) => {
-    const allowed = [".png", ".jpg", ".jpeg", ".svg", ".zip", ".gif", ".pdf"];
+    const allowed = [".png", ".jpg", ".jpeg", ".gif", ".pdf"];
     const ext = path.extname(file.originalname).toLowerCase();
     cb(null, allowed.includes(ext));
   },
 });
 
+/* ---------------- COMPLAINT ROUTE ---------------- */
+
 router.post("/repo", upload.single("file"), async (req, res) => {
-  const { ownerAddress, title, description, domain, contributors } = req.body;
+  const {
+    ownerAddress,
+    title,
+    category,
+    priority,
+    location,
+    description,
+    department,
+  } = req.body;
+
   const file = req.file;
 
   try {
-    let imageIpfsUri = "";
-    let imageHttpUri = "";
+    let fileIpfsUri = "";
+    let fileHttpUri = "";
+
+    /* -------- Upload File to IPFS -------- */
 
     if (file) {
-      imageIpfsUri = await uploadFileToIPFS(file.path);
+      fileIpfsUri = await uploadFileToIPFS(file.path);
       await fs.unlink(file.path);
+      console.log(`🧹 Temp file deleted: ${file.path}`);
 
-      imageHttpUri = imageIpfsUri.replace(
-        "ipfs://",
-        "https://ipfs.io/ipfs/"
-      );
+      fileHttpUri = fileIpfsUri.replace("ipfs://", "https://ipfs.io/ipfs/");
     }
+
+    /* -------- METADATA STRUCTURE -------- */
 
     const metadata = {
       name: title,
-      description,
-      image: imageHttpUri,
+      description: description,
+      image: fileHttpUri,
+
       attributes: [
-        { trait_type: "Created By", value: ownerAddress },
-        { trait_type: "Domain", value: domain },
+        { trait_type: "Citizen", value: ownerAddress },
+        { trait_type: "Category", value: category },
+        { trait_type: "Priority", value: priority },
+        { trait_type: "Location", value: location },
+        { trait_type: "Department", value: department || "Unassigned" },
+
         {
-          trait_type: "Contributors",
-          value: contributors
-            ? contributors.split(",").map(c => c.trim())
-            : [],
+          trait_type: "Created At",
+          value: new Date().toISOString(),
         },
-        { trait_type: "Created At", value: new Date().toISOString() },
       ],
     };
 
-    const metadataIpfsUri = await uploadMetadataToIPFS(metadata);
-    const metadataHttpUri = metadataIpfsUri.replace(
+    /* -------- Upload Metadata -------- */
+
+    const metadataUri = await uploadMetadataToIPFS(metadata);
+
+    const metadataHttpUri = metadataUri.replace(
       "ipfs://",
       "https://ipfs.io/ipfs/"
     );
 
+    /* -------- RESPONSE -------- */
+
     res.json({
       success: true,
-      metadataIpfsUri,   
-      metadataHttpUri,   
+      metadataUri: metadataUri,
     });
 
   } catch (error) {
-    console.error("❌ Upload failed:", error);
+    console.error("❌ Complaint Upload Failed:", error);
+
     res.status(500).json({
       success: false,
       error: error.message,

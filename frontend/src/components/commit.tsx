@@ -39,7 +39,7 @@ export default function Commit() {
         const signer = await provider.getSigner();
 
         const instance = new ethers.Contract(
-          "0x340E18FF8E4De6958977b2Bd8dF9A3bAB51ddD09",
+          "0x7Fef4d9a84678BA1025E7692f95bC5e1b4b74539",
           CONTRACT_ABI.abi,
           signer
         );

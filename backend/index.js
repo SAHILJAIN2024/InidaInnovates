@@ -3,9 +3,10 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import {ethers} from "ethers";
-
-import repo from "../claimit_backend/routes/repo.route.js";
-
+import repo from "./routes/repo.route.js";
+import citizenRoutes from "./routes/citizen.js";
+import complaintRoutes from "./routes/complaint.js";
+import graphRoutes from "./routes/graph.js";
 
 // ✅ Environment Variables
 const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
@@ -22,7 +23,9 @@ app.use(express.json());
 
 
 app.use("/api",repo);
-
+app.use("/api/citizens", citizenRoutes);
+app.use("/api/complaints", complaintRoutes);
+app.use("/graph", graphRoutes);
 
 const port = process.env.PORT || 5000;
 

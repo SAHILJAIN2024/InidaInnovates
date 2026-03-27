@@ -1,6 +1,6 @@
 {
   "name": "crx_backend",
- "version": "1.0.0",
+  "version": "1.0.0",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -23,7 +23,7 @@
     "mime": "^4.0.7",
     "mongoose": "^8.17.0",
     "multer": "^2.0.2",
+    "neo4j-driver": "^6.0.1",
     "nft.storage": "^7.2.0"
   }
 }
-

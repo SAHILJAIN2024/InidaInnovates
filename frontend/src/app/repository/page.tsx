@@ -17,16 +17,17 @@ interface BackendResponse {
 
 /* ---------------- COMPONENT ---------------- */
 
-export default function Repository() {
+export default function ComplaintPage() {
   const { address } = useWallet();
 
   const [contract, setContract] = useState<ethers.Contract | null>(null);
 
-  const [name, setName] = useState("");
-  const [wasteType, setWasteType] = useState("");
-  const [quantity, setQuantity] = useState("");
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [priority, setPriority] = useState("Medium");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+  const [department, setDepartment] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
   const [loading, setLoading] = useState(false);
@@ -44,7 +45,7 @@ export default function Repository() {
       const signer = await provider.getSigner();
 
       const instance = new ethers.Contract(
-        "0x340E18FF8E4De6958977b2Bd8dF9A3bAB51ddD09",
+        "0x7Fef4d9a84678BA1025E7692f95bC5e1b4b74539",
         CONTRACT_ABI.abi,
         signer
       );
@@ -55,6 +56,16 @@ export default function Repository() {
     setupContract();
   }, [address]);
 
+  /* ---------------- OPTIONAL GEO AUTO-FILL ---------------- */
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition((pos) => {
+      setLocation(`${pos.coords.latitude}, ${pos.coords.longitude}`);
+    });
+  }, []);
+
   /* ---------------- SUBMIT ---------------- */
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -63,18 +74,19 @@ export default function Repository() {
 
     try {
       setLoading(true);
-      setStatus("UPLOADING TO IPFS...");
+      setStatus("UPLOADING COMPLAINT DATA...");
 
       const formData = new FormData();
       formData.append("ownerAddress", address);
-      formData.append("name", name);
-      formData.append("wasteType", wasteType);
-      formData.append("quantity", quantity);
+      formData.append("title", title);
+      formData.append("category", category);
+      formData.append("priority", priority);
       formData.append("location", location);
       formData.append("description", description);
+      formData.append("department", department);
       formData.append("file", file);
 
-      const res = await fetch("https://crx-7rjl.onrender.com/api/waste", {
+      const res = await fetch("http://localhost:5000/api/repo", {
         method: "POST",
         body: formData,
       });
@@ -83,28 +95,29 @@ export default function Repository() {
 
       const data: BackendResponse = await res.json();
 
-      setStatus("MINTING ON-CHAIN ASSET...");
+      setStatus("MINTING COMPLAINT ON BLOCKCHAIN...");
 
       const tx = await contract.mintRequest(address, data.metadataUri);
       const receipt = await tx.wait();
 
       const event = receipt.logs.find(
-        (log: any) => log.fragment?.name === "RequestMinted"
+        (log: any) => log.fragment?.name === "ComplaintMinted"
       );
 
       const mintedId = Number(event.args.tokenId);
-      setStatus(`SUCCESS: REQUEST #${mintedId} VERIFIED`);
+      setStatus(`SUCCESS: COMPLAINT #${mintedId} REGISTERED`);
 
       // Reset
-      setName("");
-      setWasteType("");
-      setQuantity("");
+      setTitle("");
+      setCategory("");
+      setPriority("Medium");
       setLocation("");
       setDescription("");
+      setDepartment("");
       setFile(null);
     } catch (err) {
       console.error(err);
-      setStatus("ERROR: TRANSACTION FAILED");
+      setStatus("ERROR: SUBMISSION FAILED");
     } finally {
       setLoading(false);
       setTimeout(() => setStatus(""), 5000);
@@ -124,10 +137,11 @@ export default function Repository() {
           className="text-center mb-14"
         >
           <h1 className="text-6xl font-black">
-            CREATE <span className="text-emerald-500 italic">REQUEST</span>
+            REGISTER{" "}
+            <span className="text-emerald-500 italic">COMPLAINT</span>
           </h1>
           <p className="text-zinc-500 font-mono text-sm uppercase tracking-widest">
-            Deploy New Waste Asset
+            Submit Issue to Public Governance System
           </p>
         </motion.div>
 
@@ -140,39 +154,55 @@ export default function Repository() {
             <div className="grid md:grid-cols-2 gap-6">
 
               <input
-                placeholder="Asset Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                placeholder="Complaint Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 required
                 className="bg-white/5 rounded-xl px-5 py-4"
               />
 
-              <input
-                placeholder="Waste Type"
-                value={wasteType}
-                onChange={(e) => setWasteType(e.target.value)}
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
                 required
                 className="bg-white/5 rounded-xl px-5 py-4"
-              />
+              >
+                <option value="">Select Category</option>
+                <option value="Water">Water Supply</option>
+                <option value="Electricity">Electricity</option>
+                <option value="Roads">Roads</option>
+                <option value="Waste">Waste Management</option>
+                <option value="Healthcare">Healthcare</option>
+              </select>
 
-              <input
-                placeholder="Quantity (e.g. 50kg)"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                required
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
                 className="bg-white/5 rounded-xl px-5 py-4"
-              />
+              >
+                <option>Low</option>
+                <option>Medium</option>
+                <option>High</option>
+                <option>Emergency</option>
+              </select>
 
               <input
-                placeholder="Pickup Location"
+                placeholder="Location / Area"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 required
                 className="bg-white/5 rounded-xl px-5 py-4"
               />
 
+              <input
+                placeholder="Department (e.g. Municipal, Electricity Board)"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                className="bg-white/5 rounded-xl px-5 py-4"
+              />
+
               <textarea
-                placeholder="Description"
+                placeholder="Describe the issue in detail..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
@@ -197,7 +227,7 @@ export default function Repository() {
                     : "bg-emerald-500 text-black hover:bg-emerald-400"
                 }`}
             >
-              {loading ? "PROCESSING..." : "INITIALIZE MINT"}
+              {loading ? "PROCESSING..." : "REGISTER COMPLAINT"}
             </button>
           </form>
         </motion.div>
