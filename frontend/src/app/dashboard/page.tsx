@@ -14,7 +14,7 @@ type GraphResponse = { requestMinteds: Request[];
   commitMinteds: CommitType[];
  };
 
-const GRAPH_URL = "https://api.studio.thegraph.com/query/117940/crx-waste-managment/version/latest";
+const GRAPH_URL = "https://api.studio.thegraph.com/query/117940/bharatgraph/version/latest";
 const QUERY = gql`
   {
     requestMinteds(first: 50, orderBy: blockTimestamp, orderDirection: desc) {
