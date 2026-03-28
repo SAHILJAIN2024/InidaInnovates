@@ -179,173 +179,6 @@ const RenderIPFSContent = ({ data }: { data: any }) => {
   return <p className="text-zinc-500 mt-2 font-mono text-xs">Unknown Asset Format</p>;
 };
 
-const STATIC_RECOVERY_MAP: Record<
-  string,
-  {
-    recovery: string;
-    center: string;
-    contact: string;
-  }
-> = {
-  laptop: {
-    recovery:
-      "Data sanitization → Component recovery → Authorized e-waste recycling",
-    center: "Authorized E-Waste Recycler (Urban Local Body)",
-    contact: "📞 +91 1800-103-1313 | 🌐 cpcb.nic.in",
-  },
-
-  mobile: {
-    recovery:
-      "Factory reset → Battery removal → Certified mobile recycling",
-    center: "Mobile Recycling Partner (CPCB Approved)",
-    contact: "📞 +91 1800-180-5533 | 🌐 ewasteindia.com",
-  },
-
-  phone: {
-    recovery:
-      "Secure data wipe → Screen & PCB recovery → E-waste recycling",
-    center: "Electronics Recovery Center",
-    contact: "📞 +91 1800-102-0202 | 🌐 erpindia.org",
-  },
-
-  charger: {
-    recovery:
-      "Copper extraction → Plastic insulation recycling",
-    center: "Electrical Scrap Processing Unit",
-    contact: "📞 +91 98765 43210 | 🌐 scrapindia.in",
-  },
-
-  "lithium battery": {
-    recovery:
-      "Thermal isolation → Chemical neutralization → Battery-grade recycling",
-    center: "Lithium Battery Recycling Facility",
-    contact: "📞 +91 1800-212-4444 | 🌐 batxenergies.com",
-  },
-
-  plastic: {
-    recovery:
-      "Polymer segregation → Mechanical recycling → Reuse in composites",
-    center: "Municipal Plastic Recycling Facility",
-    contact: "📞 +91 1800-111-333 | 🌐 swachhbharatmission.gov.in",
-  },
-
-  unknown: {
-    recovery:
-      "Manual inspection → Material classification → Safe disposal",
-    center: "General Waste Assessment Center",
-    contact: "📞 +91 1800-000-999 | 🌐 wasteaudit.org",
-  },
-};
-
-
-const RecommendationSection = ({
-  metadataCache,
-  userRequests,
-  commits,
-}: {
-  metadataCache: Record<string, any>;
-  userRequests: any[];
-  commits: any[];
-}) => {
-
-  const insights = useMemo(() => {
-  return commits.map((commit) => {
-    const meta = metadataCache[commit.id];
-    if (!meta?.attributes) return null;
-
-    const resolveType = (meta: any, commit: any) => {
-  if (!meta) return "unknown";
-
-  const attrs = meta.attributes || [];
-
-  const possibleKeys = [
-    "type",
-    "category",
-    "asset_type",
-    "waste_type",
-    "device",
-  ];
-
-  for (const key of possibleKeys) {
-    const found = attrs.find(
-      (a: any) =>
-        a.trait_type &&
-        a.trait_type.toLowerCase().includes(key)
-    );
-    if (found?.value) return String(found.value);
-  }
-
-  // 🔁 fallback: repo name
-  if (commit?.repoName) return commit.repoName;
-
-  // 🔁 fallback: commit message
-  if (commit?.message) return commit.message;
-
-  return "unknown";
-};
-
-    const typeRaw = resolveType(meta, commit);
-    const type = String(typeRaw).toLowerCase();
-
-    const matchKey =
-      Object.keys(STATIC_RECOVERY_MAP).find((k) =>
-        type.includes(k)
-      ) || "unknown";
-
-    const recoveryInfo = STATIC_RECOVERY_MAP[matchKey];
-
-    return {
-      type: typeRaw,
-      model: "Static Recovery Engine v1.0",
-      recommendation: recoveryInfo.recovery,
-      center: recoveryInfo.center,
-      contact: recoveryInfo.contact,
-      confidence: "0.99 (Rule-based)",
-    };
-  }).filter(Boolean);
-}, [metadataCache, commits]);
-
-  if (insights.length === 0) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mb-12 p-8 rounded-[2.5rem] bg-emerald-500/5 border border-emerald-500/20 shadow-2xl"
-    >
-      <div className="flex items-center gap-3 mb-8">
-        <span className="text-2xl">🤖</span>
-        <h2 className="text-xl font-black font-mono uppercase tracking-widest text-emerald-400">
-          AI SYSTEM INSIGHTS
-        </h2>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {insights.map((insight, idx) => insight ? (
-          <motion.div
-            key={idx}
-            whileHover={{ scale: 1.02 }}
-            className="bg-black/50 p-6 rounded-2xl border border-white/5 space-y-4"
-          >
-           <div className="pt-3 border-t border-white/5 space-y-2">
-  <p className="text-[10px] uppercase text-zinc-500 font-bold">
-    Recommended Recovery Center
-  </p>
-  <p className="text-sm text-zinc-200 font-mono">
-    {insight.center}
-  </p>
-
-  <p className="text-xs text-emerald-400 font-mono">
-    {insight.contact}
-  </p>
-</div>
-
-          </motion.div>
-        ) : null)}
-      </div>
-    </motion.div>
-  );
-};
 
 /* ---------------- Dashboard ---------------- */
 const Dashboard = () => {
@@ -372,42 +205,13 @@ const Dashboard = () => {
     for (const a of attrs) {
       if (a.trait_type && typeof a.value === "string") {
         const v = a.value.toLowerCase();
-
-        if (v.includes("laptop")) {
-          return STATIC_RECOVERY_MAP["laptop"];
-        }
-
-        if (v.includes("charger")) {
-          return STATIC_RECOVERY_MAP["charger"];
-        }
       }
     }
   }
-
-  // 🔹 EXISTING LOGIC — UNTOUCHED
-  if (!meta?.attributes) return STATIC_RECOVERY_MAP["unknown"];
-
-  const attrs = meta.attributes || [];
-  let detected = "unknown";
-
-  for (const a of attrs) {
-    if (a.trait_type && typeof a.value === "string") {
-      detected = a.value.toLowerCase();
-      break;
-    }
   }
+  // 🔹 EXISTING LOGIC — UNTOUCHED
 
-  return (
-    Object.keys(STATIC_RECOVERY_MAP).find((k) =>
-      detected.includes(k)
-    ) && STATIC_RECOVERY_MAP[
-      Object.keys(STATIC_RECOVERY_MAP).find((k) =>
-        detected.includes(k)
-      ) as string
-    ]
-  ) || STATIC_RECOVERY_MAP["unknown"];
-};
-
+  
  useEffect(() => {
   if (!data) return;
 
@@ -518,19 +322,7 @@ className="group bg-black/50 p-6 rounded-2xl border border-white/5 space-y-4 sha
                         </div>
                         <span className="text-s font-mono text-zinc-500">ID: {item.tokenId}</span>
                       </div>
-                      {(() => {
-                        const rec = getRecommendationForRequest(item.tokenId);
-                        return (
-                          <div className="mb-4 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl">
-                            <p className="text-[20px] uppercase text-emerald-400 font-bold">
-                              ♻ Recovery Recommendation
-                            </p>
-                              <p className="text-[14px] uppercase text-zinc-500 font-bold">Recovery Center</p>
-  <p className="text-sm text-zinc-200 font-mono">{rec.center}</p>
-  <p className="text-xs text-emerald-400 font-mono">{rec.contact}</p>
-                          </div>
-                        );
-                      })()}
+                      
                       <RenderIPFSContent data={metadataCache[item.id]} />
                       {data?.commitMinteds?.some(
   (c) => c.requestId === item.tokenId

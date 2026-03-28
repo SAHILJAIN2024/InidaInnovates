@@ -14,7 +14,7 @@ const { address, connectWallet, disconnectWallet } = useWallet();
     return (
         <>
         <div className="flex justify-between items-center px-10 py-6">
-            <h1 className="text-xl font-bold tracking-widest">ClaimIt</h1>
+            <h1 className="text-xl font-bold tracking-widest">BHARATGRAPH</h1>
         <ul className="flex gap-12 items-center">
           <li>
         <button className="hover:text-[#702eff] cursor-pointer text-2xl" onClick={()=> router.push("/dashboard")}>
@@ -32,7 +32,7 @@ const { address, connectWallet, disconnectWallet } = useWallet();
         </button>
         </li>
         <li>
-        <button className="hover:text-[#702eff] cursor-pointer text-2xl" onClick={()=> router.push("/complaints")}>
+        <button className="hover:text-[#702eff] cursor-pointer text-2xl" onClick={()=> router.push("/market")}>
            Complaints
         </button>
         </li>

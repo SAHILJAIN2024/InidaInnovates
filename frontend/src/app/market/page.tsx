@@ -12,7 +12,7 @@ type CommitMinted = { id: string; to: string; tokenId: string; requestId: string
 type GraphResponse = { requestMinteds: RequestMinted[]; commitMinteds: CommitMinted[]; };
 
 /* ---------------- GraphQL ---------------- */
-const SUBGRAPH_URL = "https://api.studio.thegraph.com/query/117940/crx-waste-managment/version/latest";
+const SUBGRAPH_URL = "https://api.studio.thegraph.com/query/117940/bharatgraph/version/latest";
 const QUERY = gql`
 {
   requestMinteds(first: 50, orderBy: blockTimestamp, orderDirection: desc) {
